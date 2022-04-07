@@ -78,7 +78,16 @@ shinyServer(function(input, output, session) {
             dat <- dat %>% mutate(y = get_power(x))
             print(dat)
             plot(x = dat$x, y = dat$y, col=ifelse(x==ss(), "red", "black"),
-                 pch=ifelse(x==ss(), 19, 1), cex=ifelse(x==ss(), 2, 1))
+                 pch=ifelse(x==ss(), 19, 1), cex=ifelse(x==ss(), 2, 1), ylab = 'power')
+        }
+        else if(input$plot_y == 'effect size'){
+            get_effect <- function(sampsize) {
+                effect_size <- sqrt((sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2) + sqrt(p1()*q1() + p2()*q2()/k)*qnorm(power()))^2/sampsize)/p1()
+            }
+            dat <- dat %>% mutate(y = get_effect(x))
+            print(dat)
+            plot(x = dat$x, y = dat$y, col=ifelse(x==ss(), "red", "black"),
+                 pch=ifelse(x==ss(), 19, 1), cex=ifelse(x==ss(), 2, 1), ylab = 'effect size')
         }
     })
     

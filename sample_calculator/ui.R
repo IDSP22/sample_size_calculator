@@ -53,7 +53,7 @@ shinyUI(fluidPage(
                                           #dropdown menu for variables
                                           selectInput(inputId = 'plot_y', 
                                                       label = 'Choose a variable to plot against sample size:',
-                                                      choices = c( 'power')),
+                                                      choices = c( 'power', 'effect size')),
                                           plotOutput(outputId = 'plot')
                                           )
                                   )
