@@ -28,6 +28,7 @@ shinyUI(fluidPage(
                                                    label = "Minimum Detectable Effect Size", 
                                                    value = 10, min = 0, max = 100),
                                       
+                                      
                                       br(), 
                                       sliderInput(inputId = "power",
                                                   label = "Power", 
@@ -48,13 +49,13 @@ shinyUI(fluidPage(
                                       fluidRow(
                                           sidebarPanel(width = 12,
                                                        h3("Sample Size:"),
-                                                       h2(align ="center",style = "font-size: 400%; letter-spacing: 3px;", textOutput(outputId = "samplesize"))), 
-                                          sidebarPanel(width=12, 
-                                                       h3("Formula:"), 
-                                                       tags$img(src='ss_formula.png', height=400, width=600),
-                                                       br(),
-                                                       tags$a(href='https://towardsdatascience.com/required-sample-size-for-a-b-testing-6f6608dd330a', 
-                                                              "Source: Towards Data Science", style="color:blue")))
+                                                       h2(align ="center",style = "font-size: 400%; letter-spacing: 3px;", textOutput(outputId = "samplesize"))),
+                                          #dropdown menu for variables
+                                          selectInput(inputId = 'plot_y', 
+                                                      label = 'Choose a variable to plot against sample size:',
+                                                      choices = c( 'power')),
+                                          plotOutput(outputId = 'plot')
+                                          )
                                   )
                               )
                      )
