@@ -37,32 +37,29 @@ shinyServer(function(input, output, session) {
     
     
     
-    #use uniform distribution to generate 10 data points from 0 -> 2 * sample size
-    #calculate power, CI, etc for those 10 data points
-    #plot on like of sample size vs. y axis
-    #highlight data point associated with what original output of sample size was 
-    #plot 
-    
     observeEvent(input$calculate, {
-        ss <- reactive({
-            get_ss(power(), alpha(), effectsize(), p1())
-        })
+        #ss <- reactive({
+        #    get_ss(power(), alpha(), effectsize(), p1())
+        #})
+        ss <- get_ss(power(), alpha(), effectsize(), p1())
+
         output$samplesize <- renderText({
             req(input$effectsize < 100 & input$effectsize > 0)
-            paste(ss())
+            paste(ss)
         })
         
+    observeEvent(input$calculate, {
         output$plot <- renderPlot({
             req(input$plot_y)
             req(input$effectsize < 100 & input$effectsize > 0)
             
-            
             if(input$plot_y == 'power') {
-                sim_x <- seq(from=0, to=2*ss(), 20)
-                x <- c(ss(), sim_x)
+              
+                sim_x <- seq(from=0, to=2*ss, 20)
+                x <- c(ss, sim_x)
                 dat <- data.frame(x)
                 get_power <- function(sampsize) {
-                    power <- pnorm((sqrt(sampsize*effect()^2) - sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2))/sqrt(p1()*q1() + p2()*q2()/k))
+                    power <- pnorm((sqrt(sampsize*(effect())^2) - sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2))/sqrt(p1()*q1() + p2()*q2()/k))
                     return(power)
                 }
                 dat <- dat %>% mutate(y = get_power(x))
@@ -80,7 +77,7 @@ shinyServer(function(input, output, session) {
                 
                 ggplot(data=dat, aes(x=x, y=y)) +
                     geom_line()+
-                    annotate("point", x = ss(), y = power(), colour = "red", size=3)+
+                    annotate("point", x = ss, y = power(), colour = "red", size=3)+
                     xlab("sample size")+ylab("power")+ 
                     scale_x_continuous(breaks= scales::pretty_breaks(n=10))+
                     theme(
@@ -111,6 +108,8 @@ shinyServer(function(input, output, session) {
                     )
             }
         })
+        
+    })
     })
     
 })
