@@ -1,31 +1,16 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(tidyverse)
 library(sortable)
 library(shinyWidgets)
 library(GGally)
 library(ggplot2)
+library(shinyalert)
 
 
 shinyServer(function(input, output, session) {
     
-    #show alert if user inputs invalid effect size 
-    observeEvent(input$calculate, {
-        if(input$effectsize > 100 | input$effectsize <= 0){
-            show_alert(title = 'Input Error', 
-                       text = 'Please enter an effect size between 0 and 100 (inclusive).', 
-                       type = 'error')
-        }
-    })
     
+    #store parameters in reactive values 
     alpha <- reactive({1-input$conflevel/100})
     power <- reactive({input$power/100})
     p1 <- reactive({input$baseline/100})
@@ -38,6 +23,7 @@ shinyServer(function(input, output, session) {
     q2 <- reactive(1-p2())
     k <- 1
     
+    #function to calculate sample size 
     get_ss <- function(power, alpha, relative_effect, baseline){
         effect <- relative_effect*baseline 
         new_prob <- baseline - effect 
@@ -49,84 +35,82 @@ shinyServer(function(input, output, session) {
         round(n)
     }
     
-    ss <- reactive({
-        get_ss(power(), alpha(), effectsize(), p1())
-    })
     
-    output$samplesize <- renderText({
-        req(input$effectsize < 100 & input$effectsize > 0)
-        paste(ss())
-    })
     
     #use uniform distribution to generate 10 data points from 0 -> 2 * sample size
     #calculate power, CI, etc for those 10 data points
     #plot on like of sample size vs. y axis
     #highlight data point associated with what original output of sample size was 
     #plot 
-    output$plot <- renderPlot({
-        req(input$plot_y)
-        req(input$effectsize < 100 & input$effectsize > 0)
+    
+    observeEvent(input$calculate, {
+        ss <- reactive({
+            get_ss(power(), alpha(), effectsize(), p1())
+        })
+        output$samplesize <- renderText({
+            req(input$effectsize < 100 & input$effectsize > 0)
+            paste(ss())
+        })
         
-        sim_x <- seq(from=0, to=2*ss(), 20)
-        x <- c(ss(), sim_x)
-        dat <- data.frame(x)
-        if(input$plot_y == 'power') {
-            get_power <- function(sampsize) {
-                power <- pnorm((sqrt(sampsize*effect()^2) - sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2))/sqrt(p1()*q1() + p2()*q2()/k))
-                return(power)
-            }
+        output$plot <- renderPlot({
+            req(input$plot_y)
+            req(input$effectsize < 100 & input$effectsize > 0)
             
-            #tried to fix the interactivity 
-            # pow <- seq(0.01, 0.99, length.out=20)
-            # y <- pow
-            # dat <- data.frame(y)
-            # x <- c()
-            # for (val in pow){
-            #     s <- get_ss(val, alpha(), effectsize(), p1())
-            #     x <- c(x, c(s))
-            # }
-            # dat$x <- x
             
-            dat <- dat %>% mutate(y = get_power(x))
-            # print(dat)
-            # plot(x = dat$x, y = dat$y, col=ifelse(x==ss(), "red", "black"),
-            #      pch=ifelse(x==ss(), 19, 1), cex=ifelse(x==ss(), 2, 1), ylab = 'power')
-            ggplot(data=dat, aes(x=x, y=y)) +
-                geom_line()+
-                annotate("point", x = ss(), y = power(), colour = "red", size=3)+
-                xlab("sample size")+ylab("power")+ 
-                scale_x_continuous(limits = c(0,ss()*2), breaks= scales::pretty_breaks(n=10))+
-                theme(
-                    # Hide panel borders and remove grid lines
-                    panel.border = element_blank(),
-                    panel.grid.major = element_blank(),
-                    panel.grid.minor = element_blank(),
-                    # Change axis line
-                    axis.line = element_line(colour = "black")
-                )
-        }
-        else if(input$plot_y == 'effect size'){
-            get_effect <- function(sampsize) {
-                effect_size <- sqrt((sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2) + sqrt(p1()*q1() + p2()*q2()/k)*qnorm(power()))^2/sampsize)/p1()
+            if(input$plot_y == 'power') {
+                sim_x <- seq(from=0, to=2*ss(), 20)
+                x <- c(ss(), sim_x)
+                dat <- data.frame(x)
+                get_power <- function(sampsize) {
+                    power <- pnorm((sqrt(sampsize*effect()^2) - sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2))/sqrt(p1()*q1() + p2()*q2()/k))
+                    return(power)
+                }
+                dat <- dat %>% mutate(y = get_power(x))
+                
+                # tried to fix the interactivity
+                # pow <- seq(0.01, 0.99, length.out=20)
+                # y <- pow
+                # dat <- data.frame(y)
+                # x <- c()
+                # for (val in pow){
+                #     s <- get_ss(val, alpha(), effectsize(), p1())
+                #     x <- c(x, c(s))
+                # }
+                # dat$x <- x
+                
+                ggplot(data=dat, aes(x=x, y=y)) +
+                    geom_line()+
+                    annotate("point", x = ss(), y = power(), colour = "red", size=3)+
+                    xlab("sample size")+ylab("power")+ 
+                    scale_x_continuous(breaks= scales::pretty_breaks(n=10))+
+                    theme(
+                        panel.border = element_blank(),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        axis.line = element_line(colour = "black")
+                    )
             }
-            dat <- dat %>% mutate(y = get_effect(x))
-            # print(dat)
-            # plot(x = dat$x, y = dat$y, col=ifelse(x==ss(), "red", "black"),
-            #      pch=ifelse(x==ss(), 19, 1), cex=ifelse(x==ss(), 2, 1), ylab = 'effect size')
-            ggplot(data=dat, aes(x=x, y=y)) +
-                geom_line()+
-                annotate("point", x = ss(), y = effectsize(), colour = "red", size=3)+
-                xlab("sample size")+ylab("effect size")+
-                scale_x_continuous(limits = c(0,ss()*2), breaks= scales::pretty_breaks(n=10))+
-                theme(
-                    # Hide panel borders and remove grid lines
-                    panel.border = element_blank(),
-                    panel.grid.major = element_blank(),
-                    panel.grid.minor = element_blank(),
-                    # Change axis line
-                    axis.line = element_line(colour = "black")
-                )
-        }
+            else if(input$plot_y == 'effect size'){
+                sim_x <- seq(from=0, to=2*ss(), 20)
+                x <- c(ss(), sim_x)
+                dat <- data.frame(x)
+                get_effect <- function(sampsize) {
+                    effect_size <- sqrt((sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2) + sqrt(p1()*q1() + p2()*q2()/k)*qnorm(power()))^2/sampsize)/p1()
+                }
+                dat <- dat %>% mutate(y = get_effect(x))
+                ggplot(data=dat, aes(x=x, y=y)) +
+                    geom_line()+
+                    annotate("point", x = ss(), y = effectsize(), colour = "red", size=3)+
+                    xlab("sample size")+ylab("effect size")+
+                    scale_x_continuous(limits = c(0,ss()*2), breaks= scales::pretty_breaks(n=10))+
+                    theme(
+                        panel.border = element_blank(),
+                        panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank(),
+                        axis.line = element_line(colour = "black")
+                    )
+            }
+        })
     })
     
 })
@@ -135,10 +119,8 @@ shinyServer(function(input, output, session) {
 #Things to do 
 
 # - validate that baseline probability is not less than 0 or more than 100 
-# - add explanation below power and effectsize plot 
+# - add explanation below power and effectsize plot (?)
+# - freeze plot and only update when user hits calculate 
 # - clean up plot 
-# - when user hits calculate - freeze x axis of all plots and any changes in inputs should only change plot interior 
-# when user hits calculate - freeze MDE and Baseline - calculate sample size for all
-# 
 
 

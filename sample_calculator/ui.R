@@ -40,15 +40,15 @@ shinyUI(fluidPage(
                      tabPanel(title='Calculate Sample Size',
                               sidebarLayout(
                                   sidebarPanel(
-                                    numericInput(inputId = "baseline", 
-                                                 label = "Baseline Probability", 
-                                                 value = 10, min = 0, max = 100),
+                                    sliderInput(inputId = "baseline",
+                                                label = "Baseline Probability", 
+                                                value = 10,
+                                                min = 0, max = 100),
                                       br(),
-                                      numericInput(inputId = "effectsize", 
+                                      sliderInput(inputId = "effectsize", 
                                                    label = "Minimum Detectable Effect (Relative)", 
-                                                   value = 10, min = 0, max = 100),
-                                      
-                                      
+                                                   value = 10, 
+                                                   min = 0, max = 100),
                                       br(), 
                                       sliderInput(inputId = "power",
                                                   label = "Power", 
