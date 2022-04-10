@@ -66,7 +66,7 @@ shinyServer(function(input, output, session) {
     output$plot <- renderPlot({
         req(input$plot_y)
         req(input$effectsize < 100 & input$effectsize > 0)
-        # sim_x <- runif(20, 0, 2*ss())
+        
         sim_x <- seq(from=0, to=2*ss(), 20)
         x <- c(ss(), sim_x)
         dat <- data.frame(x)
@@ -75,6 +75,18 @@ shinyServer(function(input, output, session) {
                 power <- pnorm((sqrt(sampsize*effect()^2) - sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2))/sqrt(p1()*q1() + p2()*q2()/k))
                 return(power)
             }
+            
+            #tried to fix the interactivity 
+            # pow <- seq(0.01, 0.99, length.out=20)
+            # y <- pow
+            # dat <- data.frame(y)
+            # x <- c()
+            # for (val in pow){
+            #     s <- get_ss(val, alpha(), effectsize(), p1())
+            #     x <- c(x, c(s))
+            # }
+            # dat$x <- x
+            
             dat <- dat %>% mutate(y = get_power(x))
             # print(dat)
             # plot(x = dat$x, y = dat$y, col=ifelse(x==ss(), "red", "black"),
@@ -82,7 +94,16 @@ shinyServer(function(input, output, session) {
             ggplot(data=dat, aes(x=x, y=y)) +
                 geom_line()+
                 annotate("point", x = ss(), y = power(), colour = "red", size=3)+
-                xlab("sample size")+ylab("power")
+                xlab("sample size")+ylab("power")+ 
+                scale_x_continuous(limits = c(0,ss()*2), breaks= scales::pretty_breaks(n=10))+
+                theme(
+                    # Hide panel borders and remove grid lines
+                    panel.border = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # Change axis line
+                    axis.line = element_line(colour = "black")
+                )
         }
         else if(input$plot_y == 'effect size'){
             get_effect <- function(sampsize) {
@@ -95,7 +116,16 @@ shinyServer(function(input, output, session) {
             ggplot(data=dat, aes(x=x, y=y)) +
                 geom_line()+
                 annotate("point", x = ss(), y = effectsize(), colour = "red", size=3)+
-                xlab("sample size")+ylab("effect size")
+                xlab("sample size")+ylab("effect size")+
+                scale_x_continuous(limits = c(0,ss()*2), breaks= scales::pretty_breaks(n=10))+
+                theme(
+                    # Hide panel borders and remove grid lines
+                    panel.border = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    # Change axis line
+                    axis.line = element_line(colour = "black")
+                )
         }
     })
     
