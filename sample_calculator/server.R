@@ -4,24 +4,9 @@ library(sortable)
 library(shinyWidgets)
 library(GGally)
 library(ggplot2)
-library(shinyalert)
 
 
 shinyServer(function(input, output, session) {
-    
-    
-    #store parameters in reactive values 
-    alpha <- reactive({1-input$conflevel/100})
-    power <- reactive({input$power/100})
-    p1 <- reactive({input$baseline/100})
-    effectsize <- reactive({input$effectsize/100})
-    effect <- reactive(effectsize()*p1())
-    p2 <- reactive({p1()-effect()})
-    p <- reactive((p1()+k*p2())/(1+k))
-    q <- reactive((1-p()))
-    q1 <- reactive(1-p1())
-    q2 <- reactive(1-p2())
-    k <- 1
     
     #function to calculate sample size 
     get_ss <- function(power, alpha, relative_effect, baseline){
@@ -34,36 +19,47 @@ shinyServer(function(input, output, session) {
         n <- (sqrt(p*q*2)*qnorm(1-alpha/2) + sqrt(baseline*q1 + new_prob*q2)*qnorm(power))^2/effect^2
         round(n)
     }
-    
-    
+
     
     observeEvent(input$calculate, {
         #ss <- reactive({
         #    get_ss(power(), alpha(), effectsize(), p1())
         #})
-        ss <- get_ss(power(), alpha(), effectsize(), p1())
+        power <- input$power/100
+        alpha <- 1-input$conflevel/100
+        p1 <- input$baseline/100
+        effectsize <- input$effectsize/100
+        effect <- effectsize*p1
+        p2 <- p1-effect
+        p <- (p1+k*p2)/(1+k)
+        q <- (1-p)
+        q1 <- 1-p1
+        q2 <- 1-p2
+        k <- 1
+        
+        ss <- get_ss(power, alpha, effectsize, p1)
 
         output$samplesize <- renderText({
             req(input$effectsize < 100 & input$effectsize > 0)
             paste(ss)
         })
         
-    observeEvent(input$calculate, {
+        sim_x <- seq(from=0, to=2*ss, 20)
+        x <- c(ss, sim_x)
+        dat <- data.frame(x)
+        
+        
         output$plot <- renderPlot({
             req(input$plot_y)
             req(input$effectsize < 100 & input$effectsize > 0)
-            
+
             if(input$plot_y == 'power') {
-              
-                sim_x <- seq(from=0, to=2*ss, 20)
-                x <- c(ss, sim_x)
-                dat <- data.frame(x)
                 get_power <- function(sampsize) {
-                    power <- pnorm((sqrt(sampsize*(effect())^2) - sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2))/sqrt(p1()*q1() + p2()*q2()/k))
+                    power <- pnorm((sqrt(sampsize*(effect)^2) - sqrt(p*q*(1+1/k))*qnorm(1-alpha/2))/sqrt(p1*q1 + p2*q2/k))
                     return(power)
                 }
                 dat <- dat %>% mutate(y = get_power(x))
-                
+
                 # tried to fix the interactivity
                 # pow <- seq(0.01, 0.99, length.out=20)
                 # y <- pow
@@ -74,11 +70,11 @@ shinyServer(function(input, output, session) {
                 #     x <- c(x, c(s))
                 # }
                 # dat$x <- x
-                
+
                 ggplot(data=dat, aes(x=x, y=y)) +
                     geom_line()+
-                    annotate("point", x = ss, y = power(), colour = "red", size=3)+
-                    xlab("sample size")+ylab("power")+ 
+                    annotate("point", x = ss, y = power, colour = "red", size=3)+
+                    xlab("sample size")+ylab("power")+
                     scale_x_continuous(breaks= scales::pretty_breaks(n=10))+
                     theme(
                         panel.border = element_blank(),
@@ -88,18 +84,15 @@ shinyServer(function(input, output, session) {
                     )
             }
             else if(input$plot_y == 'effect size'){
-                sim_x <- seq(from=0, to=2*ss(), 20)
-                x <- c(ss(), sim_x)
-                dat <- data.frame(x)
                 get_effect <- function(sampsize) {
-                    effect_size <- sqrt((sqrt(p()*q()*(1+1/k))*qnorm(1-alpha()/2) + sqrt(p1()*q1() + p2()*q2()/k)*qnorm(power()))^2/sampsize)/p1()
+                    effect_size <- sqrt((sqrt(p*q*(1+1/k))*qnorm(1-alpha/2) + sqrt(p1*q1 + p2*q2/k)*qnorm(power))^2/sampsize)/p1
                 }
                 dat <- dat %>% mutate(y = get_effect(x))
                 ggplot(data=dat, aes(x=x, y=y)) +
                     geom_line()+
-                    annotate("point", x = ss(), y = effectsize(), colour = "red", size=3)+
+                    annotate("point", x = ss, y = effectsize, colour = "red", size=3)+
                     xlab("sample size")+ylab("effect size")+
-                    scale_x_continuous(limits = c(0,ss()*2), breaks= scales::pretty_breaks(n=10))+
+                    scale_x_continuous(breaks= scales::pretty_breaks(n=10))+
                     theme(
                         panel.border = element_blank(),
                         panel.grid.major = element_blank(),
@@ -109,7 +102,7 @@ shinyServer(function(input, output, session) {
             }
         })
         
-    })
+    
     })
     
 })
