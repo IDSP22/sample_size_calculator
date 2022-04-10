@@ -5,7 +5,6 @@
 # Find out more about building applications with Shiny here:
 #
 #    http://shiny.rstudio.com/
-#
 
 library(shiny)
 library(shinythemes)
@@ -15,7 +14,7 @@ library(shinythemes)
 shinyUI(fluidPage(
     
     navbarPage(title='Sample Size Calculator',
-                     theme = shinytheme("sandstone"),
+                     theme = bslib::bs_theme(bootswatch = "journal"),
                tabPanel(title="Introduction", 
                         wellPanel(
                           h3("Introduction"),
@@ -63,7 +62,7 @@ shinyUI(fluidPage(
                                       actionButton(inputId = "calculate",
                                                    label = "Calculate", 
                                                    class="btn btn-primary", 
-                                                   style="align:center; padding:5px 100px")
+                                                   style="align:center; padding:5px 80px")
                                   ),
                                   mainPanel(
                                       fluidRow(

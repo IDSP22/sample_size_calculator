@@ -44,7 +44,7 @@ shinyServer(function(input, output, session) {
             paste(ss)
         })
         
-        sim_x <- seq(from=0, to=2*ss, 20)
+        sim_x <- seq(0, 2*ss, 20)
         x <- c(ss, sim_x)
         dat <- data.frame(x)
         
@@ -60,7 +60,7 @@ shinyServer(function(input, output, session) {
                 }
                 dat <- dat %>% mutate(y = get_power(x))
 
-                ggplot(data=dat, aes(x=x, y=y)) +
+                ggplot(data=dat, aes(x=x, y=y)) + ylim(0, 1) +
                     geom_line()+
                     annotate("point", x = ss, y = power, colour = "red", size=3)+
                     xlab("sample size")+ylab("power")+
@@ -77,7 +77,7 @@ shinyServer(function(input, output, session) {
                     effect_size <- sqrt((sqrt(p*q*(1+1/k))*qnorm(1-alpha/2) + sqrt(p1*q1 + p2*q2/k)*qnorm(power))^2/sampsize)/p1
                 }
                 dat <- dat %>% mutate(y = get_effect(x))
-                ggplot(data=dat, aes(x=x, y=y)) +
+                ggplot(data=dat, aes(x=x, y=y)) + ylim(0, 1) +
                     geom_line()+
                     annotate("point", x = ss, y = effectsize, colour = "red", size=3)+
                     xlab("sample size")+ylab("effect size")+
