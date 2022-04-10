@@ -31,11 +31,11 @@ shinyServer(function(input, output, session) {
         effectsize <- input$effectsize/100
         effect <- effectsize*p1
         p2 <- p1-effect
+        k <- 1
         p <- (p1+k*p2)/(1+k)
         q <- (1-p)
         q1 <- 1-p1
         q2 <- 1-p2
-        k <- 1
         
         ss <- get_ss(power, alpha, effectsize, p1)
 
@@ -59,17 +59,6 @@ shinyServer(function(input, output, session) {
                     return(power)
                 }
                 dat <- dat %>% mutate(y = get_power(x))
-
-                # tried to fix the interactivity
-                # pow <- seq(0.01, 0.99, length.out=20)
-                # y <- pow
-                # dat <- data.frame(y)
-                # x <- c()
-                # for (val in pow){
-                #     s <- get_ss(val, alpha(), effectsize(), p1())
-                #     x <- c(x, c(s))
-                # }
-                # dat$x <- x
 
                 ggplot(data=dat, aes(x=x, y=y)) +
                     geom_line()+
