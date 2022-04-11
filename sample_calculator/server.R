@@ -8,6 +8,7 @@ library(ggplot2)
 
 shinyServer(function(input, output, session) {
     
+    #switch tabs when user clicks "I'm ready"
     observeEvent(input$ready, {
         updateTabsetPanel(session, "ss_app",
                           selected = "tab2")
@@ -25,11 +26,8 @@ shinyServer(function(input, output, session) {
         round(n)
     }
 
-    
+    #calculate sample size only when user hits calculate
     observeEvent(input$calculate, {
-        #ss <- reactive({
-        #    get_ss(power(), alpha(), effectsize(), p1())
-        #})
         power <- input$power/100
         alpha <- 1-input$conflevel/100
         p1 <- input$baseline/100
@@ -43,17 +41,20 @@ shinyServer(function(input, output, session) {
         q2 <- 1-p2
         
         ss <- get_ss(power, alpha, effectsize, p1)
-
+        
+        
+        #output sample size in text
         output$samplesize <- renderText({
             req(input$effectsize < 100 & input$effectsize > 0)
             paste(ss)
         })
         
+        #generate values of power/ effect size to estimate sample sizes for plots 
         sim_x <- seq(0, 2*ss, 20)
         x <- c(ss, sim_x)
         dat <- data.frame(x)
         
-        
+        #generate plots - power vs sample size and effect size vs sample size 
         output$plot <- renderPlot({
             req(input$plot_y)
             req(input$effectsize < 100 & input$effectsize > 0)
@@ -77,6 +78,7 @@ shinyServer(function(input, output, session) {
                         axis.line = element_line(colour = "black")
                     )
             }
+            
             else if(input$plot_y == 'effect size'){
                 get_effect <- function(sampsize) {
                     effect_size <- sqrt((sqrt(p*q*(1+1/k))*qnorm(1-alpha/2) + sqrt(p1*q1 + p2*q2/k)*qnorm(power))^2/sampsize)/p1
@@ -95,18 +97,8 @@ shinyServer(function(input, output, session) {
                     )
             }
         })
-        
-    
     })
     
 })
-
-
-#Things to do 
-
-# - validate that baseline probability is not less than 0 or more than 100 
-# - add explanation below power and effectsize plot (?)
-# - freeze plot and only update when user hits calculate 
-# - clean up plot 
 
 
