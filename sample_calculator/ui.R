@@ -30,7 +30,7 @@ shinyUI(fluidPage(
                               "<h4>Try it yourself..</h4>", "Use the next tab to calculate your sample size. <ul> <li> First, think of a hypothesis test you'd like to conduct. </li> 
                               <li>Then, specify a baseline probability and minimum detectable effect size. </li>
                               <li>Use the sliders to set the desired power and confidence level of your test. </li>  
-                              <li>Finally, press calculate to find out your required sample size! </li> </ul>", "<h5>What are the plots for? </h5>",
+                              <li>Finally, press calculate to find out your required sample size for each group! </li> </ul>", "<h5>What are the plots for? </h5>",
                               "Sometimes, the estimated sample size may be too large or not feasible due to resource constraints. In such situations, it is good to know how you can change the required sample size by altering other parameters. 
                               For example, maybe you can increase the minimum detectable effect to be able to work with smaller sample? Or maybe you wouldn't mind reducing the power of the test slightly?
                               You can use the plots generated to understand the relationship between sample size and other parameters, and make such decisions. <br></br>")),
@@ -67,7 +67,7 @@ shinyUI(fluidPage(
                                   mainPanel(
                                       fluidRow(
                                           sidebarPanel(width = 12,
-                                                       h4("Required Sample Size:"),
+                                                       h4("Required Sample Size (per group):"),
                                                        h4(align ="center",style = "font-size: 400%; letter-spacing: 3px;", textOutput(outputId = "samplesize")))),
                                       
                                       fluidRow(
