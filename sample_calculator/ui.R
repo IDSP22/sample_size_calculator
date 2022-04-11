@@ -34,7 +34,7 @@ shinyUI(fluidPage(
                               "Sometimes, the estimated sample size may be too large or not feasible due to resource constraints. In such situations, it is good to know how you can change the required sample size by altering other parameters. 
                               For example, maybe you can increase the minimum detectable effect to be able to work with smaller sample? Or maybe you wouldn't mind reducing the power of the test slightly?
                               You can use the plots generated to understand the relationship between sample size and other parameters, and make such decisions. <br></br>")),
-                          actionButton('ready', "I'm ready!", class="btn btn-primary", style="align:center; padding:5px 80px")
+                          actionButton('ready', "I'm ready!", class="btn btn-primary", style="align:center; padding:5px 100px")
                         )),
                      tabPanel(title='Calculate Sample Size', value="tab2",
                               sidebarLayout(
@@ -66,9 +66,13 @@ shinyUI(fluidPage(
                                   ),
                                   mainPanel(
                                       fluidRow(
+                                         sidebarPanel(width = 12,
+                                                 textOutput(outputId = "null_hypothesis"),
+                                                 textOutput(outputId = "alt_hypothesis"))),
+                                      fluidRow(
                                           sidebarPanel(width = 12,
-                                                       h4("Required Sample Size (per group):"),
-                                                       h4(align ="center",style = "font-size: 400%; letter-spacing: 3px;", textOutput(outputId = "samplesize")))),
+                                                       h6("Required Sample Size (per group):"),
+                                                       h4(align ="center",style = "font-size: 200%; letter-spacing: 3px;", textOutput(outputId = "samplesize")))),
                                       
                                       fluidRow(
                                           #dropdown menu for variables

@@ -25,6 +25,8 @@ shinyServer(function(input, output, session) {
         n <- (sqrt(p*q*2)*qnorm(1-alpha/2) + sqrt(baseline*q1 + new_prob*q2)*qnorm(power))^2/effect^2
         round(n)
     }
+    
+    
 
     #calculate sample size only when user hits calculate
     observeEvent(input$calculate, {
@@ -41,8 +43,14 @@ shinyServer(function(input, output, session) {
         q2 <- 1-p2
         
         ss <- get_ss(power, alpha, effectsize, p1)
+        #output null hypothesis in text
+        output$null_hypothesis <- renderText({
+            print(paste0('Null Hypothesis: p1 = p2 = ', p1))
+        })
         
-        
+        output$alt_hypothesis <- renderText({
+            print(paste0('Alternative Hypothesis: |p1 - p2|/p1 >= ', effectsize))
+        })
         #output sample size in text
         output$samplesize <- renderText({
             req(input$effectsize < 100 & input$effectsize > 0)
