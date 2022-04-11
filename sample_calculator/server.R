@@ -8,6 +8,11 @@ library(ggplot2)
 
 shinyServer(function(input, output, session) {
     
+    observeEvent(input$ready, {
+        updateTabsetPanel(session, "ss_app",
+                          selected = "tab2")
+    })
+    
     #function to calculate sample size 
     get_ss <- function(power, alpha, relative_effect, baseline){
         effect <- relative_effect*baseline 
