@@ -67,8 +67,8 @@ shinyUI(fluidPage(
                                   mainPanel(
                                       fluidRow(
                                          sidebarPanel(width = 12,
-                                                 textOutput(outputId = "null_hypothesis"),
-                                                 textOutput(outputId = "alt_hypothesis"))),
+                                                 h6(textOutput(outputId = "null_hypothesis")),
+                                                 h6(textOutput(outputId = "alt_hypothesis")))),
                                       fluidRow(
                                           sidebarPanel(width = 12,
                                                        h6("Required Sample Size (per group):"),
